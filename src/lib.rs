@@ -22,11 +22,10 @@ pub fn assemble() {
     parser.first_pass(lexer.get_tokens());
 
     let mut binary_writer = BufWriter::new(binary_file);
-    let mut ram_address = 16;
-    for token in lexer.get_tokens() {
-        let bits = parser.parse(token, ram_address);
-        binary_writer.write(bits.as_bytes()).unwrap();
-        ram_address += 1
+    let bits = parser.parse(lexer.get_tokens());
+    for bit in bits.into_iter() {
+        if bit == "" { continue; }
+        binary_writer.write(bit.as_bytes()).unwrap();
     }
 }
 

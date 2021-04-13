@@ -96,44 +96,54 @@ impl Parser<'_> {
         }
     }
 
-    pub fn parse(&mut self, token: &Token, address: i32) -> String {
+    pub fn parse(&mut self, tokens: &Vec<Token>) -> Vec<String> {
+        let mut ram_address = 16;
+        let mut bitcode = Vec::new();
         let mut opcode = String::new();
-        match token.get_token() {
-            Instruction::LInstruction(_) => {}
-            Instruction::AInstruction(a_token) => {
-                if a_token.chars().nth(1).unwrap().is_numeric() {
-                    let mut addr = format!("{:b}", a_token.replace("@", "")
-                        .trim().parse::<u16>().unwrap());
-                    for _ in 0..(16 - addr.len()) {
-                        addr.insert(0, '0');
-                    }
-                    opcode.push_str(&addr);
-                } else {
-                    // The token is a variable
-                    let var = a_token.replace("@", "").trim().to_string();
-                    if self.contains_symbol(&var) {
-                        let mut bits = format!("{:0>15b}", self.get_address(&var));
-                        for _ in 0..(16 - bits.len()) {
-                            bits.insert(0, '0')
+        for token in tokens.into_iter() {
+            match token.get_token() {
+                Instruction::LInstruction(_) => {}
+                Instruction::AInstruction(a_token) => {
+                    if a_token.chars().nth(1).unwrap().is_numeric() {
+                        let mut addr = format!("{:b}", a_token.replace("@", "")
+                            .trim().parse::<u16>().unwrap());
+                        for _ in 0..(16 - addr.len()) {
+                            addr.insert(0, '0');
                         }
-                        opcode.push_str(&bits)
+                        opcode.push_str(&addr);
                     } else {
-                        self.insert_symbol(&var, address)
+                        // The tokens is a variable
+                        opcode.push('0');
+                        let var = a_token.replace("@", "").trim().to_string();
+                        if self.contains_symbol(&var) {
+                            let bits = format!("{:0>15b}", self.get_address(&var));
+                            opcode.push_str(&bits)
+                        } else {
+                            self.insert_symbol(&var, ram_address);
+                            let bits = format!("{:0>15b}", self.get_address(&var));
+                            // for _ in 0..(16 - bits.len()) {
+                            //     bits.insert(0, '0')
+                            // }
+                            opcode.push_str(&bits);
+                            ram_address += 1;
+                        }
                     }
                 }
+                Instruction::CInstruction(c_token) => {
+                    opcode.push_str("111");
+                    let comp_bit = self.get_comp_bits(c_token);
+                    let dest_bit = self.get_dest_bits(c_token);
+                    let jump_bit = self.get_jump_bits(c_token);
+                    opcode = opcode + &comp_bit + &dest_bit + &jump_bit;
+                }
             }
-            Instruction::CInstruction(c_token) => {
-                opcode.push_str("111");
-                let comp_bit = self.get_comp_bits(c_token);
-                let dest_bit = self.get_dest_bits(c_token);
-                let jump_bit = self.get_jump_bits(c_token);
-                opcode = opcode + &comp_bit + &dest_bit + &jump_bit;
+            if opcode != "" {
+                opcode.push_str("\n");
+                bitcode.push(opcode.to_string());
             }
+            opcode.clear()
         }
-        if opcode != "" {
-            opcode.push_str("\n")
-        }
-        opcode
+        bitcode
     }
 
     pub fn first_pass(&mut self, tokens: &Vec<Token>) {
