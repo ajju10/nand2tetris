@@ -28,28 +28,3 @@ pub fn assemble() {
         binary_writer.write(bit.as_bytes()).unwrap();
     }
 }
-
-
-#[cfg(test)]
-mod test {
-    use crate::lexer::Lexer;
-
-    #[test]
-    fn create_tokens() {
-        let code = String::from(
-            "// Hello this is a sample comment in the file
-
-                @100 // Load 100
-                D=D-A
-
-                D;JGT
-                "
-        );
-        let lexer = Lexer::new(code);
-
-        assert_eq!(
-            lexer.get_tokens(),
-            &vec!["@100".to_string(), "D=D-A".to_string(), "D;JGT".to_string()]
-        )
-    }
-}
