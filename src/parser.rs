@@ -121,9 +121,6 @@ impl Parser<'_> {
                         } else {
                             self.insert_symbol(&var, ram_address);
                             let bits = format!("{:0>15b}", self.get_address(&var));
-                            // for _ in 0..(16 - bits.len()) {
-                            //     bits.insert(0, '0')
-                            // }
                             opcode.push_str(&bits);
                             ram_address += 1;
                         }
