@@ -164,7 +164,9 @@ impl Parser<'_> {
         }
 
         let mut bit = token.split("=");
-        String::from(*self.comp_bits.get(bit.nth(1).unwrap()).unwrap())
+        String::from(*self.comp_bits.get(
+            bit.nth(1).unwrap())
+            .unwrap_or_else(|| panic!("{:?}", self.symbol_table)))
     }
 
     fn get_dest_bits(&self, token: &String) -> String {
